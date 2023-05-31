@@ -216,4 +216,235 @@ document.getElementById("btn-toggle").addEventListener("click", () => {
             }); 
         });
 
+        
+
+    $('#btnModalJumat').click(function(){
+        $('#sholatJumatModal').modal('show');
+        $('#titlesholatModal').text('Tambah Data');
+        $('#btnSholatJumat').text('Simpan');
+        $('#txttgl').val('');
+        $('#txtwaktu').val('');
+        $('#txtkhatib').val('');
+        $('#txtimam').val('');
+        $('#txtmuadzin').val('');
+        $('#txtbilal').val('');
+    });      
+
+    // nambah combo nama imam
+    $.ajax({
+        url:"source/controller/controllerPetugas.php",
+        method:"POST",
+        data:{
+            'method_petugas':'recordDataPetugas'
+        },
+        success:function(data){
+            $hasil = JSON.parse(data);
+        
+            for(i=0;i<$hasil['data'].length;i++)
+            {
+                $('#txtimam').append($('<option>').val($hasil['data'][i]['nama']).text($hasil['data'][i]['nama']));
+            }
+        }
+    });
+
+    // nambah combo nama khatib
+    $.ajax({
+        url:"source/controller/controllerPetugas.php",
+        method:"POST",
+        data:{
+            'method_petugas':'recordDataPetugas'
+        },
+        success:function(data){
+            $hasil = JSON.parse(data);
+        
+            for(i=0;i<$hasil['data'].length;i++)
+            {
+                $('#txtkhatib').append($('<option>').val($hasil['data'][i]['nama']).text($hasil['data'][i]['nama']));
+            }
+        }
+    });
+
+    // nambah combo nama muadzin
+    $.ajax({
+        url:"source/controller/controllerPetugas.php",
+        method:"POST",
+        data:{
+            'method_petugas':'recordDataPetugas'
+        },
+        success:function(data){
+            $hasil = JSON.parse(data);
+        
+            for(i=0;i<$hasil['data'].length;i++)
+            {
+                $('#txtmuadzin').append($('<option>').val($hasil['data'][i]['nama']).text($hasil['data'][i]['nama']));
+            }
+        }
+    });
+
+    // nambah combo nama bilal
+    $.ajax({
+        url:"source/controller/controllerPetugas.php",
+        method:"POST",
+        data:{
+            'method_petugas':'recordDataPetugas'
+        },
+        success:function(data){
+            $hasil = JSON.parse(data);
+        
+            for(i=0;i<$hasil['data'].length;i++)
+            {
+                $('#txtbilal').append($('<option>').val($hasil['data'][i]['nama']).text($hasil['data'][i]['nama']));
+            }
+        }
+    });
+
+    $('#btnSholatJumat').click(function(){
+        if ($('#btnSholatJumat').text()=="Simpan"){
+            $.ajax({
+                url:"source/controller/controllerJumat.php",
+                method:"POST",
+                data:{
+                        'method_jumat':'Simpan_JadwalJumat',
+                        'js_idjumat':$('#txtidJumat').val(),
+                        'js_tanggaljumat':$('#txttgl').val(),
+                        'js_waktujumat':$('#txtwaktu').val(),
+                        'js_khatibjumat':$('#txtkhatib').val(),
+                        'js_imamjumat':$('#txtimam').val(),
+                        'js_muadzinjumat':$('#txtmuadzin').val(),
+                        'js_bilaljumat':$('#txtbilal').val()
+                    },
+            success:function(data){
+                $hasil=JSON.parse(data);
+                swal($hasil['message']);
+                $('#sholatJumatModal').modal('hide');
+                let xtable = $('#table-sholat-jumat').DataTable();
+                xtable.ajax.reload( null, false );
+            }
+        });
+        }else{
+            $.ajax({
+            url:"source/controller/controllerJumat.php",
+            method:"POST",
+            data:{
+                    'method_jumat':'Ubah_JadwalJumat',
+                    'js_idjumat':$('#txtidjumat').val(),
+                    'js_tanggaljumat':$('#txttgl').val(),
+                    'js_waktujumat':$('#txtwaktu').val(),
+                    'js_khatibjumat':$('#txtkhatib').val(),
+                    'js_imamjumat':$('#txtimam').val(),
+                    'js_muadzinjumat':$('#txtmuadzin').val(),
+                    'js_bilaljumat':$('#txtbilal').val()
+                },
+            success:function(data){
+                $hasil=JSON.parse(data);
+                swal($hasil['message']);
+                $('#sholatJumatModal').modal('hide');
+                let xtable = $('#table-sholat-jumat').DataTable();
+                xtable.ajax.reload( null, false );
+            }
+        });
+        }
+        
+        });
+
+        $('#table-sholat-jumat').DataTable({
+            "paging": true,
+            "lengthChange": false,
+            "searching": true,
+            "processing": true,
+            "ordering": false,
+            "info": false,
+            "responsive": true,
+            "autoWidth": false,
+            "pageLength": 100,
+            "dom": '<"top"f>rtip',
+            "fnDrawCallback": function( oSettings ) {
+            },
+            "ajax": {
+            "url": "source/controller/controllerJumat.php",
+            "type": "POST",
+            "data" : {
+                method_jumat : "recordDataJadwalJumat"
+            },
+            error: function (request, textStatus, errorThrown) {
+                swal(request.responseJSON.message);
+            }
+            },
+                    
+            columns: [
+                { "data": null,render : function ( data, type, full, meta ) {
+                return meta.row + 1;
+                }},
+                { "data": "tanggal" },
+                { "data": "waktu" },
+                { "data": "nama_khatib" },
+                { "data": "nama_imam" },
+                { "data": "nama_muadzin" },
+                { "data": "nama_bilal" },
+                { "data": null, render : function(data,type,row){
+                return "<button title='Edit' class='btn btn-edit-jumat btn-warning btn-xs'><i class='fafa-pencil'></i> Edit</button> <button title='Delete' class='btn btn-hapus-jumat btn-danger btn- xs'><i class='fa fa-remove'></i> Delete</button> ";
+                }    },
+            ]
+        });
+
+        // Membuat Kode hapus data petugas
+    $(document).on("click",".btn-hapus-jumat",function(){
+        let posisiBaris = $(this).parents('tr');
+        if (posisiBaris.hasClass('child')) {
+            posisiBaris = posisiBaris.prev();
+        }
+        let table = $('#table-sholat-jumat').DataTable();
+        let data = table.row(posisiBaris).data();
+    swal({
+            title: "Delete",
+            text: "Apakah anda yakin menghapus data ini ?",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Delete",
+            closeOnConfirm: false,
+            showLoaderOnConfirm: true
+        },
+    function(){
+    $.ajax({
+        url:"source/controller/controllerJumat.php",
+        type: "POST",
+        data:   {
+                    js_idjumat : data.id,
+                    method_jumat:'Hapus_JadwalJumat'
+                },
+        success: function(data)
+        {
+                    $resp = JSON.parse(data);
+                    if($resp['status'] == true){
+                    swal($resp['message']);
+                    let xtable = $('#table-sholat-jumat').DataTable();        
+                    xtable.ajax.reload( null, false );
+                    }else{
+                    swal("Error hapus Petugas: "+$resp['message'])
+                    } 
+                }
+            });
+        });
+    });
+
+    $(document).on("click",".btn-edit-jumat",function(){
+    
+        var posisiBaris = $(this).parents('tr');
+        if (posisiBaris .hasClass('child')) {
+            posisiBaris = posisiBaris .prev();
+        }
+        var table = $('#table-sholat-jumat').DataTable();
+        var data = table.row( posisiBaris ).data();
+        $('#txtidjumat').val(data.id);
+        $('#txttgl').val(data.tanggal);
+        $('#txtwaktu').val(data.waktu);
+        $('#txtkhatib').val(data.nama_khatib);
+        $('#txtimam').val(data.nama_imam);
+        $('#txtmuadzin').val(data.nama_muadzin);
+        $('#txtbilal').val(data.nama_bilal);
+        $('#btnSholatJumat').text('Ubah');
+        $('#sholatJumatModal').modal('show');
+    });
+
 }); //akhir
